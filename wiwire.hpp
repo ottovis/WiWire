@@ -74,6 +74,11 @@ class wiwire {
   /// stop byte.
   char readOneByte();
 
+  /// Private function that sends exactly one byte of char value 0. this is done
+  /// to reset the decibel adjustments of any listening revievers before sending
+  /// actual data
+  void denoise();
+
   /// The given hardware ID of the device. This is used to find targeted
   /// messages
   const char hwid;

@@ -19,7 +19,7 @@ int wiwire::send(const char *msg, int sizeMsg, char hwtarget) {
     if (attemptCounter > retryAmount) {
       return -1;
     }
-
+    denoise();
     sendByte(STARTBYTE);
     sendByte(SENDBYTE);
     sendByte(hwtarget);
@@ -35,6 +35,7 @@ int wiwire::send(const char *msg, int sizeMsg, char hwtarget) {
 }
 
 int wiwire::broadcast(const char *msg, const int &sizeMsg) {
+  denoise();
   sendByte(STARTBYTE);
   sendByte(BROADCASTBYTE);
   sendByte(sizeMsg);
@@ -243,3 +244,8 @@ retry:
 }
 
 void wiwire::setAttempts(int &setAttempts) { retryAmount = setAttempts; }
+
+void wiwire::denoise() {
+  sendByte(0);
+  hwlib::wait_ms(4);
+}

@@ -1,5 +1,5 @@
 # WiWire
-Wiwire, simple and robust wireless transmission protocol for embedded systems
+Wiwire, a simple and robust wireless transmission protocol for embedded systems
 
 # Warning: This project is made as a education excercise, don't use it in real world applications
 
