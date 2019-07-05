@@ -13,6 +13,6 @@ the basic idea was to make a more robust replacement for a protocol like I2C, wi
 ## How to use
 The usage of this libary is rather easy. Make a pin_in object and a pin_out object, one for recieving and one for sending and feed these to the constructor of the WiWire class. You can now send, broadcast and recieve messages. 
 
-# Example uses
+## Example uses
 One might use this in a IOT environment, where one can broadcast tasks to all avalable devices or to talk to a indivitual device using its hardware id. Think along the lines of turing on individual light, with dimming and color info, and using a broadcast to quickly turn them all off. 
 
