@@ -74,23 +74,18 @@ class wiwire {
   /// stop byte.
   char readOneByte();
 
-  /// Private function that sends exactly one byte of char value 0. this is done
-  /// to reset the decibel adjustments of any listening revievers before sending
-  /// actual data
-  void denoise();
-
   /// The given hardware ID of the device. This is used to find targeted
   /// messages
   const char hwid;
 
   /// Multiple test pins used during development of the project.
-  hwlib::target::pin_out testProbe;
+  // hwlib::target::pin_out testProbe;
   hwlib::target::pin_out logicHigh;
   hwlib::target::pin_out logicLow;
   hwlib::target::pin_out startPin;
 
   /// amount of allowed retries sending messages
-  int retryAmount;
+  int retryAmount = 8;
 
  public:
   ///  Only constructor of the class, takes a transciever pin, a reciever pin
@@ -99,10 +94,11 @@ class wiwire {
       : txPin(txPin),
         rxPin(rxPin),
         hwid(hwid),
-        testProbe(hwlib::target::pin_out(hwlib::target::pins::d46)),
+        // testProbe(hwlib::target::pin_out(hwlib::target::pins::d46)),
         logicHigh(hwlib::target::pin_out(hwlib::target::pins::d30)),
         logicLow(hwlib::target::pin_out(hwlib::target::pins::d31)),
-        startPin(hwlib::target::pin_out(hwlib::target::pins::d29)){};
+        startPin(hwlib::target::pin_out(hwlib::target::pins::d29))
+        {};
 
   /// Public function that can be used to send data to any avalable devices that
   /// are ready to recieve data. Does not expect a response and does not listen

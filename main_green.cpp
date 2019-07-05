@@ -35,8 +35,7 @@ int main() {
   auto greenLed = target::pin_out(target::pins::d37);
   auto yellowLed = target::pin_out(target::pins::d36);
   
-  auto failedLed = target::pin_out(target::pins::d24);
-  auto succesLed = target::pin_out(target::pins::d25);
+
   // auto scl = target::pin_oc( target::pins::scl );
   // auto sda = target::pin_oc( target::pins::sda );
 
@@ -44,60 +43,39 @@ int main() {
   // auto display = hwlib::glcd_oled( i2c_bus, 0x3c );
   // display.clear();
 
-  // yellowLed.write(0); yellowLed.flush();
+  yellowLed.write(0); yellowLed.flush();
 
   tx.write(0);
   tx.flush();
-  wiwire wire(tx, rx, 0x0F);
+  wiwire wire(tx, rx, 0x0B);
   int sizeMsg = 12;
   const char msg[12] = "Hello world";
   char hwtargetWhite = 0x0A;
-  char hwtargetBlue = 0x0B;
-  char hwtargetGreen = 0x0C;
-  char hwtargetYellow = 0x0D;
+  // char hwtargetBlue = 0x0B;
+  // char hwtargetGreen = 0x0C;
+  // char hwtargetYellow = 0x0D;
 
   while (true) {
-    while (true){
-    if(whiteButton.read()){
-      int tmp = wire.send(msg, sizeMsg, hwtargetWhite);
-      hwlib::cout << "White" << (int)tmp << '\n';
-      if(tmp == -1){failedLed.write(1); failedLed.flush();}
-      else{succesLed.write(1); succesLed.flush();}
-      break;
-
+    if (whiteButton.read())
+    {
+      wire.send(msg, sizeMsg, hwtargetWhite);
     }
-    if(yellowButton.read()){
-      int tmp = wire.send(msg, sizeMsg, hwtargetBlue);
-      hwlib::cout << "Yellow" << (int)tmp << '\n';
-      if(tmp == -1){failedLed.write(1); failedLed.flush();}
-      else{succesLed.write(1); succesLed.flush();}
-      break;
+    char msgRecieved[12] = {};
+    int size = wire.blockRead(msgRecieved);
+    bool same = true;
+    for (int i = 0; i < size; i++)
+    {
+      if (msg[i] != msgRecieved[i])
+      {
+        same = false;
+      }
     }
-    if(greenButton.read()){
-      int tmp = wire.send(msg, sizeMsg, hwtargetGreen);
-      hwlib::cout << "Green" << (int)tmp << '\n';
-      if(tmp == -1){failedLed.write(1); failedLed.flush();}
-      else{succesLed.write(1); succesLed.flush();}
-      break;
+    if (same)
+    {
+      blueLed.write(1); blueLed.flush();
+      hwlib::wait_ms(1000);
+      blueLed.write(0); blueLed.flush();
     }
-    if(blueButton.read()){
-      int tmp = wire.send(msg, sizeMsg, hwtargetYellow);
-      hwlib::cout << "Blue" << (int)tmp <<'\n';
-      if(tmp == -1){failedLed.write(1); failedLed.flush();}
-      else{succesLed.write(1); succesLed.flush();}
-      break;
-    }
-    if(broadcastButton.read()){
-      wire.broadcast(msg, sizeMsg);
-      hwlib::cout << "Black" << '\n';
-      succesLed.write(1); succesLed.flush();
-    }
-    }
-
-    hwlib::wait_ms(500);
-    failedLed.write(0); failedLed.flush();
-    succesLed.write(0); succesLed.flush();
-
   }
   return 0;
 }

@@ -16,10 +16,14 @@ int wiwire::send(const char *msg, int sizeMsg, char hwtarget) {
   char readByte = 0;
   do {
     attemptCounter++;
+
     if (attemptCounter > retryAmount) {
       return -1;
     }
-    denoise();
+
+    // sendByte(0);
+    hwlib::wait_ms(10);
+
     sendByte(STARTBYTE);
     sendByte(SENDBYTE);
     sendByte(hwtarget);
@@ -35,7 +39,8 @@ int wiwire::send(const char *msg, int sizeMsg, char hwtarget) {
 }
 
 int wiwire::broadcast(const char *msg, const int &sizeMsg) {
-  denoise();
+  // sendByte(0);
+  // hwlib::wait_ms(5);
   sendByte(STARTBYTE);
   sendByte(BROADCASTBYTE);
   sendByte(sizeMsg);
@@ -71,8 +76,6 @@ bool wiwire::verify(const char *msg, const int &sizeMsg, const char &byte) {
 }
 
 void wiwire::sendByte(char byte) {
-  testProbe.write(1);
-  testProbe.flush();
   for (int i = 0; i < 8; i++) {
     if ((byte >> i) % 2) {
       txPin.write(1);
@@ -90,11 +93,13 @@ void wiwire::sendByte(char byte) {
       hwlib::wait_us(1500);
     }
   }
-  testProbe.write(0);
-  testProbe.flush();
+  // testProbe.write(0);
+  // testProbe.flush();
 }
 
 char wiwire::readOneByte() {
+
+  startPin.write(1); startPin.flush();
   char rollingBuffer[10];
   int buffCounter = 0;
   int highLow = 0;
@@ -104,16 +109,16 @@ char wiwire::readOneByte() {
   int bitsRead = 0;
   char returnByte = 0;
 
-  startPin.write(1);
-  startPin.flush();
+  // startPin.write(1);
+  // startPin.flush();
   for (int i = 0; i < 10; i++) {
     rollingBuffer[i] = rxPin.read();
   }
   // testProbe.write(1); testProbe.flush();
-  while (bitsRead < 8 && watchdog < 1000) {
+  while (bitsRead < 8 && watchdog < 4000) {
     watchdog++;
-    testProbe.write(bitsRead % 2);
-    testProbe.flush();
+    // testProbe.write(bitsRead % 2);
+    // testProbe.flush();
     bitcount = 0;
     int readValue = rxPin.read();
     rollingBuffer[buffCounter] = readValue;
@@ -132,7 +137,7 @@ char wiwire::readOneByte() {
       last = true;
     } else {
       if (last) {
-        if (highLow < 300) {
+        if (highLow < 500) {
           returnByte >>= 1;
           bitsRead++;
           logicLow.write(1);
@@ -158,9 +163,11 @@ char wiwire::readOneByte() {
     }
   }
 
-  startPin.write(0);
-  startPin.flush();
+  // startPin.write(0);
+  // startPin.flush();
   hwlib::wait_us(10);
+
+  startPin.write(0); startPin.flush();
   return returnByte;
 }
 
@@ -168,13 +175,12 @@ void wiwire::findStartByte() {
   while (true) {
     char tmp = readOneByte();
     if (tmp != STARTBYTE) {
-      testProbe.write(0);
-      testProbe.flush();
+      // testProbe.write(0);
+      // testProbe.flush();
       hwlib::wait_us(10);
-      // hwlib::cout << "Bad start byte, expected: " << STARTBYTE << " Got: "
-      // << tmp << "\n";
-      testProbe.write(1);
-      testProbe.flush();
+      // hwlib::cout << "Bad start byte, expected: " << STARTBYTE << " Got: " << (int) tmp << "\n";
+      // testProbe.write(1);
+      // testProbe.flush();
     } else {
       // hwlib::cout << "returning\n";
       return;
@@ -186,30 +192,30 @@ char wiwire::blockRead(char *msg) {
 retry:
   while (true) {
     // hwlib::cout << "Retrying" << "\n";
-    testProbe.write(1);
-    testProbe.flush();
+    // testProbe.write(1);
+    // testProbe.flush();
     findStartByte();
-    testProbe.write(0);
-    testProbe.flush();
+    // testProbe.write(0);
+    // testProbe.flush();
     char mode = readOneByte();
     if (mode == SENDBYTE) {
       if (readOneByte() != hwid) {
         continue;
       }
     }
-    testProbe.write(1);
-    testProbe.flush();
+    // testProbe.write(1);
+    // testProbe.flush();
     char sizeMsg = readOneByte();
-    testProbe.write(0);
-    testProbe.flush();
+    // testProbe.write(0);
+    // testProbe.flush();
     for (int i = 0; i < sizeMsg; i++) {
       msg[i] = readOneByte();
-      testProbe.write(i % 2);
-      testProbe.flush();
+      // testProbe.write(i % 2);
+      // testProbe.flush();
     }
     char tmp = readOneByte();
-    testProbe.write(1);
-    testProbe.flush();
+    // testProbe.write(1);
+    // testProbe.flush();
     char tmp2 = tmp;
     if (!verify(msg, sizeMsg, tmp)) {
       hwlib::cout << "failed verify, expected: " << (int)tmp2
@@ -220,8 +226,8 @@ retry:
       }
       goto retry;
     }
-    testProbe.write(0);
-    testProbe.flush();
+    // testProbe.write(0);
+    // testProbe.flush();
     char tmp3 = readOneByte();
     if (tmp3 != STOPBYTE) {
       hwlib::cout << "failed stopByte, expected: " << STOPBYTE
@@ -232,20 +238,16 @@ retry:
       }
       goto retry;
     }
-    testProbe.write(1);
-    testProbe.flush();
+    // testProbe.write(1);
+    // testProbe.flush();
     if (mode == BROADCASTBYTE) {
       return sizeMsg;
     }
-    hwlib::wait_ms(10);
+    hwlib::wait_ms(1);
     sendByte(ACKBYTE);
+    hwlib::cout << "Ack" << '\n';
     return sizeMsg;
   }
 }
 
 void wiwire::setAttempts(int &setAttempts) { retryAmount = setAttempts; }
-
-void wiwire::denoise() {
-  sendByte(0);
-  hwlib::wait_ms(4);
-}
