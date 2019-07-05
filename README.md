@@ -4,7 +4,7 @@ Wiwire, a simple and robust wireless transmission protocol for embedded systems
 # Warning: This project is made as a education excercise, don't use it in real world applications
 
 ## Made by Otto de Visser
-first year student at Hogeschool Utrecht
+First year student at Hogeschool Utrecht
 
 ## Uses
 This project uses https://github.com/wovo/hwlib to send and recieve data point to point. This project is made to be used with very basic 433MHz senders and recievers, but there is no inherent problem that limits its use to this only. 
